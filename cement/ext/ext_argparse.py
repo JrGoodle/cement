@@ -571,14 +571,21 @@ class ArgparseController(ControllerHandler):
                 parsers[label].formatter_class = contr._meta.argument_formatter
 
             elif stacked_type == 'embedded':
-                # if it's embedded, then just set it to use the same as the
+                # if it's base, then just set it to use the same as the
                 # controller its stacked on
                 parents[label] = parents[stacked_on]
                 parsers[label] = parsers[stacked_on]
+                if label != 'base':
+                    # set parser and formatter for embedded controller
+                    contr._parser = parsers[label]
+                    contr._parser.formatter_class = contr._meta.argument_formatter
 
     def _get_parser_by_controller(self, controller):
         if controller._meta.stacked_type == 'embedded':
-            parser = self._get_parser(controller._meta.stacked_on)
+            if controller._meta.label == 'base':
+                parser = self._get_parser(controller._meta.stacked_on)
+            else:
+                parser = self._get_parser(controller._meta.label)
         else:
             parser = self._get_parser(controller._meta.label)
 
@@ -586,7 +593,10 @@ class ArgparseController(ControllerHandler):
 
     def _get_parser_parent_by_controller(self, controller):
         if controller._meta.stacked_type == 'embedded':
-            parent = self._get_parser_parent(controller._meta.stacked_on)
+            if controller._meta.label == 'base':
+                parent = self._get_parser_parent(controller._meta.stacked_on)
+            else:
+                parent = self._get_parser_parent(controller._meta.label)
         else:
             parent = self._get_parser_parent(controller._meta.label)
 
